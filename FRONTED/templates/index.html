@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot de Emociones</title>
+
+    <!-- Incluir Bootstrap desde CDN -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        #chatbox {
+            width: 100%;
+            max-width: 450px;
+            height: 600px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #messages {
+            padding: 15px;
+            height: 85%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .user-message, .bot-message {
+            padding: 12px 18px;
+            border-radius: 10px;
+            max-width: 80%;
+            font-size: 16px;
+        }
+
+        .user-message {
+            background-color: #00c6ff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background-color: #0072ff;
+            color: white;
+            align-self: flex-start;
+        }
+
+        .input-container {
+            padding: 15px;
+            background-color: #f1f1f1;
+            display: flex;
+            align-items: center;
+        }
+
+        #user_message {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 25px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #0072ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbox" class="shadow-lg">
+        <h3 class="text-center bg-primary text-white p-3">Chatbot de Emociones</h3>
+        <div id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="user_message" class="form-control" placeholder="Escribe tu mensaje..." onkeypress="checkEnter(event)" />
+            <button class="btn btn-primary" onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <!-- Incluir jQuery y Bootstrap JS desde CDN -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function sendMessage() {
+            var message = document.getElementById("user_message").value;
+            if (message.trim() === "") {
+                alert("Por favor, escribe un mensaje.");
+                return;
+            }
+
+            // Mostrar el mensaje del usuario en el chat
+            var messagesDiv = document.getElementById("messages");
+            var userMessageElement = document.createElement("div");
+            userMessageElement.textContent = message;
+            userMessageElement.classList.add("user-message");
+            messagesDiv.appendChild(userMessageElement);
+
+            // Enviar el mensaje al backend
+            fetch("http://127.0.0.1:5000/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    input: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Mostrar la respuesta del chatbot
+                var botMessageElement = document.createElement("div");
+                botMessageElement.textContent = data.recommendation;
+                botMessageElement.classList.add("bot-message");
+                messagesDiv.appendChild(botMessageElement);
+
+                // Limpiar el campo de entrada
+                document.getElementById("user_message").value = "";
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Hacer scroll hacia el último mensaje
+            })
+            .catch(error => {
+                console.error("Error al enviar el mensaje:", error);
+            });
+        }
+
+        // Función para verificar si la tecla presionada es Enter
+        function checkEnter(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
